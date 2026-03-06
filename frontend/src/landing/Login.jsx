@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
 
 const Login = () => {
   const navigate = useNavigate();
+  const loginStore = useAuthStore((state) => state.login);
   const [studentId, setStudentId] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -48,10 +50,15 @@ const Login = () => {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setSuccess('Login realizado com sucesso!');
+      // store user info (for now just id)
+      loginStore({ id: studentId });
+      // clear form fields
       setStudentId('');
       setPassword('');
       setRememberMe(false);
       setShowPassword(false);
+      // navigate to marketplace after short delay
+      setTimeout(() => navigate('/home'), 500);
     } catch (error) {
       setErrors({ submit: 'Erro ao fazer login. Tente novamente.' });
     } finally {
@@ -203,6 +210,9 @@ const Login = () => {
               </button>
             </p>
           </div>
+          <p className="mt-4 text-xs text-purple-200">
+            Os teus dados estão seguros e não serão partilhados com terceiros.
+          </p>
         </div>
       </div>
     </div>
