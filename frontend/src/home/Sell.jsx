@@ -171,7 +171,7 @@ const Sell = () => {
       await uploadProduct(productData);
 
       // Show success message
-      setSuccessMessage('Produto publicado com sucesso! Redirecionando...');
+      setSuccessMessage('✅ Produto publicado com sucesso! Redirecionando para a home...');
 
       // Reset form
       setFormData({
@@ -185,9 +185,9 @@ const Sell = () => {
       });
       setUploadedFiles([]);
 
-      // Redirect to profile after 2 seconds
+      // Redirect to home after 2 seconds to see the product
       setTimeout(() => {
-        navigate('/profile');
+        navigate('/home');
       }, 2000);
     } catch (err) {
       console.error('Error uploading product:', err);

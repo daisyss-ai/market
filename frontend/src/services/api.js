@@ -240,4 +240,17 @@ export const cartAPI = {
     }),
 };
 
+// Helper function to create test/sample products for development
+export const createSampleProducts = async () => {
+  try {
+    // Use the /dev-seed endpoint that creates test data in development
+    return apiRequest('/products/dev-seed', {
+      method: 'POST',
+    });
+  } catch (err) {
+    console.error('Error creating sample products:', err);
+    throw err;
+  }
+};
+
 export default apiRequest;
