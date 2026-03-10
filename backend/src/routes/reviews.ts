@@ -1,8 +1,8 @@
 import { Router, Response } from 'express';
-import { supabaseClient } from '../utils/supabase.js';
-import { sendError, sendSuccess, sendCreated } from '../utils/jwt.js';
-import { validate, createReviewSchema } from '../utils/validation.js';
-import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.js';
+import { supabaseClient } from '../utils/supabase.ts';
+import { sendError, sendSuccess, sendCreated } from '../utils/jwt.ts';
+import { validate, createReviewSchema } from '../utils/validation.ts';
+import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.ts';
 
 const router = Router();
 

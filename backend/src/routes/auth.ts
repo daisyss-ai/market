@@ -1,10 +1,10 @@
 import { Router, Response } from 'express';
 import bcryptjs from 'bcryptjs';
-import { supabaseClient, supabaseServiceClient } from '../utils/supabase.js';
-import { generateToken, sendError, sendSuccess, sendCreated, ApiError } from '../utils/jwt.js';
-import { validate, signupSchema, studentVerificationSchema } from '../utils/validation.js';
-import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.js';
-import { AuthRequest, StudentVerificationRequest } from '../types/index.js';
+import { supabaseClient, supabaseServiceClient } from '../utils/supabase.ts';
+import { generateToken, sendError, sendSuccess, sendCreated, ApiError } from '../utils/jwt.ts';
+import { validate, signupSchema, studentVerificationSchema } from '../utils/validation.ts';
+import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.ts';
+import { AuthRequest, StudentVerificationRequest } from '../types/index.ts';
 
 const router = Router();
 
@@ -118,6 +118,61 @@ router.post('/signup', async (req: AuthenticatedRequest, res: Response) => {
       user: newUser,
       token,
     }, 'Account created successfully');
+  } catch (error: any) {
+    sendError(res, 400, error.message);
+  }
+});
+
+/**
+ * POST /api/auth/dev-login
+ * Dev-only quick login for testing (no password required)
+ */
+router.post('/dev-login', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (process.env.NODE_ENV === 'production') {
+      return sendError(res, 403, 'Dev endpoint disabled in production');
+    }
+
+    const { email = 'vendor@test.com' } = req.body;
+
+    // Get or create test user
+    const { data: user, error: userError } = await supabaseServiceClient
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    let testUser = user;
+    if (userError || !user) {
+      // Create test vendor
+      const { data: newUser, error: createError } = await supabaseServiceClient
+        .from('users')
+        .insert({
+          email,
+          full_name: 'Test Vendor',
+          role: 'vendor',
+          avatar_url: 'https://via.placeholder.com/150?text=Test+Vendor'
+        })
+        .select('*')
+        .single();
+
+      if (createError || !newUser) {
+        return sendError(res, 400, `Failed to create test user: ${createError?.message}`);
+      }
+      testUser = newUser;
+    }
+
+    // Generate token
+    const token = generateToken({
+      userId: testUser.id,
+      email: testUser.email,
+      role: testUser.role,
+    });
+
+    sendSuccess(res, {
+      user: testUser,
+      token,
+    }, 'Dev login successful');
   } catch (error: any) {
     sendError(res, 400, error.message);
   }

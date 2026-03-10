@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { extractTokenFromHeader, verifyToken, sendError } from '../utils/jwt.js';
+import { extractTokenFromHeader, verifyToken, sendError } from '../utils/jwt.ts';
 
 export interface AuthenticatedRequest extends Request {
   user?: {

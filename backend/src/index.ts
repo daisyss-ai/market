@@ -1,16 +1,16 @@
 import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
-import { errorHandler, notFoundHandler } from './middleware/auth.js';
+import { errorHandler, notFoundHandler } from './middleware/auth.ts';
 
 // Import routes
-import authRoutes from './routes/auth.js';
-import productsRoutes from './routes/products.js';
-import messagesRoutes from './routes/messages.js';
-import reviewsRoutes from './routes/reviews.js';
-import favoritesRoutes from './routes/favorites.js';
-import cartRoutes from './routes/cart.js';
-import usersRoutes from './routes/users.js';
+import authRoutes from './routes/auth.ts';
+import productsRoutes from './routes/products.ts';
+import messagesRoutes from './routes/messages.ts';
+import reviewsRoutes from './routes/reviews.ts';
+import favoritesRoutes from './routes/favorites.ts';
+import cartRoutes from './routes/cart.ts';
+import usersRoutes from './routes/users.ts';
 
 const app = express();
 const PORT = process.env.PORT || 3000;

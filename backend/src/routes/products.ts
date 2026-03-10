@@ -1,9 +1,9 @@
 import { Router, Response } from 'express';
-import { supabaseClient } from '../utils/supabase.js';
-import { sendError, sendSuccess, sendCreated } from '../utils/jwt.js';
-import { validate, createProductSchema, updateProductSchema } from '../utils/validation.js';
-import { authenticateToken, requireRole, AuthenticatedRequest } from '../middleware/auth.js';
-import { CreateProductRequest, UpdateProductRequest } from '../types/index.js';
+import { supabaseClient, supabaseServiceClient } from '../utils/supabase.ts';
+import { sendError, sendSuccess, sendCreated } from '../utils/jwt.ts';
+import { validate, createProductSchema, updateProductSchema } from '../utils/validation.ts';
+import { authenticateToken, requireRole, AuthenticatedRequest } from '../middleware/auth.ts';
+import { CreateProductRequest, UpdateProductRequest } from '../types/index.ts';
 
 const router = Router();
 
@@ -229,6 +229,145 @@ router.delete('/:id', authenticateToken, requireRole('vendor'), async (req: Auth
     }
 
     sendSuccess(res, {}, 'Product deleted successfully');
+  } catch (error: any) {
+    sendError(res, 400, error.message);
+  }
+});
+
+/**
+ * POST /api/products/dev-seed
+ * Create sample products for development (NO AUTH REQUIRED)
+ */
+router.post('/dev-seed', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    // Use development mode check
+    const isDev = process.env.NODE_ENV !== 'production';
+    if (!isDev) {
+      return sendError(res, 403, 'Dev seed endpoint only available in development');
+    }
+
+    // Create test vendor user first
+    const vendorEmail = 'test-vendor@marketu.app';
+    
+    // Check if vendor already exists
+    const { data: existingVendor } = await supabaseServiceClient
+      .from('users')
+      .select('id')
+      .eq('email', vendorEmail)
+      .single();
+
+    let vendorId = existingVendor?.id;
+
+    // If vendor doesn't exist, create one using service client (bypasses RLS)
+    if (!vendorId) {
+      const { data: newVendor, error: vendorError } = await supabaseServiceClient
+        .from('users')
+        .insert({
+          email: vendorEmail,
+          full_name: 'Test Vendor',
+          role: 'vendor',
+          avatar_url: 'https://via.placeholder.com/150?text=Test+Vendor',
+        })
+        .select('id')
+        .single();
+
+      if (vendorError || !newVendor) {
+        return sendError(res, 400, `Failed to create test vendor: ${vendorError?.message}`);
+      }
+      vendorId = newVendor.id;
+    }
+
+    // Sample products to create
+    const sampleProducts = [
+      {
+        vendor_id: vendorId,
+        title: 'Livro Cálculo Volume 1 - Muito Bom',
+        description: 'Livro de Cálculo Volume 1, praticamente novo, apenas folhas de rascunho. Perfeito para quem estuda engenharia ou matemática.',
+        category: 'Livros',
+        condition: 'como_novo',
+        price: 5500,
+        location: 'Luanda',
+        image_urls: ['https://via.placeholder.com/400x300?text=Livro+Calculo+1'],
+        stock: 1,
+        is_active: true,
+      },
+      {
+        vendor_id: vendorId,
+        title: 'iPhone 8 - Excelente Estado',
+        description: 'iPhone 8, 64GB, cor cinza espacial. Funciona perfeitamente, bateria com 85% de saúde.',
+        category: 'Tecnologia',
+        condition: 'novo',
+        price: 35000,
+        location: 'Luanda',
+        image_urls: ['https://via.placeholder.com/400x300?text=iPhone+8'],
+        stock: 1,
+        is_active: true,
+      },
+      {
+        vendor_id: vendorId,
+        title: 'Livro Harry Potter - Câmara Secreta',
+        description: 'Livro Harry Potter e a Câmara Secreta, edição portuguesa, capa dura. Muito bem conservado.',
+        category: 'Livros',
+        condition: 'como_novo',
+        price: 4000,
+        location: 'Luanda',
+        image_urls: ['https://via.placeholder.com/400x300?text=Harry+Potter'],
+        stock: 2,
+        is_active: true,
+      },
+      {
+        vendor_id: vendorId,
+        title: 'Calculadora Científica Casio',
+        description: 'Calculadora científica Casio fx-991, funciona perfeitamente. Sem defeitos.',
+        category: 'Material Escolar',
+        condition: 'novo',
+        price: 3000,
+        location: 'Luanda',
+        image_urls: ['https://via.placeholder.com/400x300?text=Calculadora'],
+        stock: 3,
+        is_active: true,
+      },
+      {
+        vendor_id: vendorId,
+        title: 'Notebook Dell Inspiron',
+        description: 'Notebook Dell Inspiron, Intel i5, 8GB RAM, SSD 256GB. Funciona muito bem.',
+        category: 'Tecnologia',
+        condition: 'como_novo',
+        price: 45000,
+        location: 'Luanda',
+        image_urls: ['https://via.placeholder.com/400x300?text=Notebook+Dell'],
+        stock: 1,
+        is_active: true,
+      },
+      {
+        vendor_id: vendorId,
+        title: 'Dicionário Inglês-Português',
+        description: 'Dicionário Inglês-Português com mais de 50 mil palavras. Excelente qualidade.',
+        category: 'Livros',
+        condition: 'novo',
+        price: 2500,
+        location: 'Huambo',
+        image_urls: ['https://via.placeholder.com/400x300?text=Dicionario'],
+        stock: 2,
+        is_active: true,
+      },
+    ];
+
+    // Insert products using service client (bypasses RLS)
+    const { data: products, error: productsError } = await supabaseServiceClient
+      .from('products')
+      .insert(sampleProducts)
+      .select();
+
+    if (productsError) {
+      return sendError(res, 400, `Failed to create products: ${productsError.message}`);
+    }
+
+    sendSuccess(res, {
+      message: `Created ${products?.length || 0} sample products`,
+      vendor_id: vendorId,
+      products: products || [],
+    });
   } catch (error: any) {
     sendError(res, 400, error.message);
   }

@@ -31,8 +31,11 @@ export const extractTokenFromHeader = (authHeader?: string): string | null => {
 };
 
 export class ApiError extends Error {
-  constructor(public statusCode: number, message: string) {
+  statusCode: number;
+
+  constructor(statusCode: number, message: string) {
     super(message);
+    this.statusCode = statusCode;
     this.name = 'ApiError';
   }
 }

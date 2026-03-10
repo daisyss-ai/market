@@ -20,12 +20,7 @@ const Header = () => {
             <button className="flex items-center gap-1 hover:underline">
               Categorias <ChevronDown className="w-4 h-4" />
             </button>
-            <Link to="#" className="hover:underline">
-              Ofertas
-            </Link>
-            <Link to="#" className="hover:underline">
-              Novidades
-            </Link>
+           
           </nav>
 
           {/* search input */}
